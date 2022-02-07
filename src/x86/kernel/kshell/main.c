@@ -120,24 +120,33 @@ __attribute__((interrupt)) void irq1_isr(int_frame32_t*) {
     unsigned int scancode = inportb(0x60);
     unsigned int status = inportb(0x64);
 
+    char cmdBuf[25] = {'\0'};
+    unsigned int cmdIdx = 0;
+
     if (get_key(scancode) != 0x0 && scancode != 57 && scancode != 1 && SC_ASCII[scancode] != '\x08' && x < 40) {
         *(vga + 2) = ' ';
         *vga = get_key(scancode)[0];
         vga += 2;
         *(vga + 2) = '|';
         ++x;
+        cmdBuf[cmdIdx] = get_key(scancode)[0];
+        ++cmdIdx;
     } else if (scancode == 57 && x < 40) {   // 23 chars max.
         *(vga + 2) = ' ';
         *vga = ' ';
         vga += 2;
         *(vga + 2) = '|';
         ++x;
+        cmdBuf[cmdIdx] = ' ';
+        ++cmdIdx;
     } else if (SC_ASCII[scancode] == '\x08' && x > 17) {
         *(vga + 2) = ' ';
         vga -= 2;
         *vga = ' ';
         *(vga + 2) = '|';
         --x;
+        --cmdIdx;
+        cmdBuf[cmdIdx] = '\0';
     }
 
     outportb(0x64, 0xFF);
